@@ -1,6 +1,13 @@
 const categories = document.getElementById('btn-category');
 const videoContainer = document.getElementById('videosContainer');
+const sorted = document.getElementById('sorting');
 let selectedCategory = 1000;
+let sortByView = false;
+
+sorted.addEventListener('click',()=>{
+    sortByView = true;
+    categoryByID(selectedCategory,sortByView)
+})
 
 const jsonCategory = async() => {
     const response = await fetch('https://openapi.programming-hero.com/api/videos/categories');
@@ -13,18 +20,39 @@ const jsonCategory = async() => {
 const categoryShow = category => {
     category.forEach(cat => {
         const catBtn = document.createElement('button');
-        catBtn.classList = `font-medium px-5 py-2 bg-[#25252526] rounded-md active:bg-[#FF1F3D] active:text-white` ;
+        catBtn.classList = `catClass font-medium px-5 py-2 rounded-md bg-[#25252526]` ;
         catBtn.innerText = cat.category;
-        catBtn.addEventListener('click', () => categoryByID(cat.category_id));      
+        catBtn.addEventListener('click', () => {
+            categoryByID(cat.category_id);
+            const btns = document.getElementsByClassName('catClass');
+            for(const btn of btns){
+                    btn.classList.remove('bg-[#FF1F3D]', 'text-white')
+                    btn.classList.add('bg-[#25252526]')
+                }
+                catBtn.classList.add('bg-[#FF1F3D]', 'text-white')
+                catBtn.classList.remove('bg-[#25252526]')
+        });
         categories.appendChild(catBtn);
     });
 }
 
-function categoryByID(categoryID){
+function categoryByID(categoryID, sorting){
     fetch(`https://openapi.programming-hero.com/api/videos/category/${categoryID}`)
     .then(response=> response.json())
     .then(data=>{
+        selectedCategory = categoryID;
         const videos = data.data;
+        const checking = {data};
+        console.log(videos.others)
+        if(sorting){
+            videos.sort((a,b)=>{
+                const firstVideo = a.others?.views;
+                const secondVideo = b.others?.views;
+                const firstTotalView = parseFloat(firstVideo.replace('K','')) || 0;
+                const secondTotalView = parseFloat(secondVideo.replace('K','')) || 0;
+                return secondTotalView - firstTotalView;
+            })
+        }
         videoContainer.innerHTML = ``;
         if(videos.length === 0){
             document.getElementById('noVideos').classList.remove('hidden');
@@ -33,7 +61,7 @@ function categoryByID(categoryID){
             document.getElementById('noVideos').classList.add('hidden');
         }
         videos.forEach(video => {
-            console.log(video)
+            // console.log(video)
             let verifiedImg = ``
             if(video.authors[0]?.verified === true){
                 verifiedImg = `./images/verify.png`;
@@ -67,4 +95,4 @@ function categoryByID(categoryID){
 }
 
 jsonCategory()
-categoryByID(selectedCategory)
+categoryByID(selectedCategory, sortByView)
