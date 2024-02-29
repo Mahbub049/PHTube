@@ -1,6 +1,7 @@
 const categories = document.getElementById('btn-category');
 const videoContainer = document.getElementById('videosContainer');
 const sorted = document.getElementById('sorting');
+let timer = document.getElementById('timing');
 let selectedCategory = 1000;
 let sortByView = false;
 
@@ -42,8 +43,7 @@ function categoryByID(categoryID, sorting){
     .then(data=>{
         selectedCategory = categoryID;
         const videos = data.data;
-        const checking = {data};
-        console.log(videos.others)
+
         if(sorting){
             videos.sort((a,b)=>{
                 const firstVideo = a.others?.views;
@@ -60,12 +60,30 @@ function categoryByID(categoryID, sorting){
         else{
             document.getElementById('noVideos').classList.add('hidden');
         }
+        
+        function toHoursAndMinutes(totalSeconds) {
+            const totalMinutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+          
+            return `${hours}hrs ${minutes} min ago`;
+          }
+
+          function toHide(video){
+            console.log(video)
+          }
+
         videos.forEach(video => {
             // console.log(video)
             let verifiedImg = ``
             if(video.authors[0]?.verified === true){
                 verifiedImg = `./images/verify.png`;
             }
+            let totalSeconds = video.others.posted_date;
+            const time = parseInt(totalSeconds) || 0;
+            const HourTime = toHoursAndMinutes(time)
+            
             const videoCard = document.createElement('div');
             videoCard.classList = `card w-96 bg-base-100`;
             videoCard.innerHTML = `
@@ -73,7 +91,7 @@ function categoryByID(categoryID, sorting){
                 <figure class="px-10 pt-10">
                     <img class="h-[200px]" src="${video.thumbnail}" alt="Shoes" class="rounded-xl" />
                   </figure>
-                  <span class="text-white text-lg p-1 bg-black absolute right-12 bottom-2 rounded-md">3hrs 56 min ago</span>
+                  ${time !== 0 ? `<span id="timing" class="text-white text-lg p-1 bg-black absolute right-12 bottom-2 rounded-md ">${HourTime}</span>` : ''}
             </div>
             <div class="mt-5 mx-10 flex gap-3">
                 <div class="mt-3">
@@ -93,6 +111,7 @@ function categoryByID(categoryID, sorting){
         });
     })
 }
+
 
 jsonCategory()
 categoryByID(selectedCategory, sortByView)
